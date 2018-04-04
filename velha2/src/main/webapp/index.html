@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
+<body>
+
+    <script>
+        var preencherTabuleiro = function(jogadas,$scope){
+            jogadas.forEach(function(jogada){
+                console.log(jogada)
+                
+                $scope.quadrantes[jogada.quadrante] = jogada.jogador
+            })
+        }
+        
+        
+        var app = angular.module('velhaApp', []);
+        app.controller('velhaCtrl', function($scope, $http) {
+           
+           $scope.novoJogo = function(j1, j2){
+               var jogo = { 
+                    "jogador1": j1,
+                    "jogador2": j2,
+                    "jogadas": []
+                  }
+               
+               $scope.j1 = j1;
+               $scope.j2 = j2;
+               
+               
+               $http.post("jogos", jogo).
+                    then(function(data){
+                        console.log("Deu")
+                        console.log(data)
+                        $scope.quadrantes = []
+                        $scope.njogo = data.data.identificador
+                        $scope.vez = j1
+                    }, function(error){
+                        console.log("Erro")
+                        console.log(error)
+                    })
+           }
+           
+           $scope.marcar = function(quadrante){
+               var jogada = {
+                    "jogador": $scope.vez,
+                    "quadrante": quadrante
+                  }
+               
+               
+               $http.post("jogos/" + $scope.njogo + "/jogadas", jogada).
+                    then(function(data){
+                        console.log("Deu")
+                        
+                        if($scope.vez == $scope.j1){
+                            $scope.vez = $scope.j2
+                        } else {
+                            $scope.vez = $scope.j1
+                        }
+                        
+                        console.log(data)
+                        $http.get("jogos/" + $scope.njogo)
+                                .then(
+                                    function(data){
+                                        preencherTabuleiro(data.data.jogadas,$scope)
+                                    }, 
+                                    function(error){ console.log("Erro")
+                                        console.log(error)
+                                    }
+                                )
+                        
+                        
+                        
+                    }, function(error){
+                        console.log("Erro")
+                        console.log(error)
+                    })
+           }
+           
+        });
+        
+       
+    </script>    
+    
+    
+<div ng-app="velhaApp" ng-controller="velhaCtrl">
+  <h1>Velha</h1>
+  
+  <div ng-hide="njogo">
+      <p>Jogador 1 : <input type="text" ng-model="j1"></p>
+      <p>Jogador 2 : <input type="text" ng-model="j2"></p>
+      
+      <button ng-click="novoJogo(j1, j2)">Novo jogo</button>
+  </div>
+  
+  <div ng-show="njogo">
+      <h1>Jogo {{njogo}}
+      Agora eh a vez de {{vez}}
+      <br>
+      <button ng-click="marcar(11)">{{quadrantes[11] || "Marcar"}}</button>    
+      <button ng-click="marcar(12)">{{quadrantes[12] || "Marcar"}}</button>    
+      <button ng-click="marcar(13)">{{quadrantes[13] || "Marcar"}}</button>    
+      <br>
+      <button ng-click="marcar(21)">{{quadrantes[21] || "Marcar"}}</button>    
+      <button ng-click="marcar(22)">{{quadrantes[22] || "Marcar"}}</button>    
+      <button ng-click="marcar(23)">{{quadrantes[23] || "Marcar"}}</button>    
+      <br>
+      <button ng-click="marcar(31)">{{quadrantes[31] || "Marcar"}}</button>    
+      <button ng-click="marcar(32)">{{quadrantes[32] || "Marcar"}}</button>    
+      <button ng-click="marcar(33)">{{quadrantes[33] || "Marcar"}}</button>    
+  </div>
+  
+  
+  
+  <hr>    
+</div>
+    
+    
+
+</body>
+</html>
